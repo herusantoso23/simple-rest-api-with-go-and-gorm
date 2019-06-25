@@ -22,8 +22,6 @@ func (idb *InDB) CreateUser(c echo.Context) (err error) {
 }
 
 func (idb *InDB) UpdateUser(c echo.Context) (err error) {
-	id := c.Param("id")
-
 	dto := new(structs.User)
 	if err = c.Bind(dto); err != nil {
 		return
@@ -31,7 +29,7 @@ func (idb *InDB) UpdateUser(c echo.Context) (err error) {
 
 	// Check user on database
 	var u structs.User
-	errs := idb.DB.First(&u, id).Error
+	errs := idb.DB.First(&u, dto.ID).Error
 	if errs != nil {
 		return c.JSON(http.StatusNotFound, handler.ErrorResponse(http.StatusNotFound, "Data not found", nil))
 	}
