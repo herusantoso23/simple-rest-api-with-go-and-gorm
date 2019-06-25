@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func CreateUser(c echo.Context) (err error) {
+func (idb *InDB) CreateUser(c echo.Context) (err error) {
 	u := new(structs.User)
 	if err = c.Bind(u); err != nil {
 		return
@@ -17,55 +17,61 @@ func CreateUser(c echo.Context) (err error) {
 		return
 	}
 
+	idb.DB.Create(&u)
 	return c.JSON(http.StatusOK, handler.SuccessResponse(u))
 }
 
-func UpdateUser(c echo.Context) (err error) {
-	u := new(structs.User)
-	if err = c.Bind(u); err != nil {
+func (idb *InDB) UpdateUser(c echo.Context) (err error) {
+	id := c.Param("id")
+
+	dto := new(structs.User)
+	if err = c.Bind(dto); err != nil {
 		return
 	}
 
-	if u.ID == "" {
-		return c.JSON(http.StatusBadRequest, handler.ErrorResponse(http.StatusBadRequest, "ID must not be null", nil))
-	} else {
-		if err = c.Validate(u); err != nil {
-			return
-		}
-		return c.JSON(http.StatusOK, handler.SuccessResponse(u))
+	// Check user on database
+	var u structs.User
+	errs := idb.DB.First(&u, id).Error
+	if errs != nil {
+		return c.JSON(http.StatusNotFound, handler.ErrorResponse(http.StatusNotFound, "Data not found", nil))
 	}
+
+	u.Address = dto.Address
+	u.Name = dto.Name
+	idb.DB.Save(&u)
+	return c.JSON(http.StatusOK, handler.SuccessResponse(u))
 }
 
-func GetUser(c echo.Context) (err error) {
+func (idb *InDB) GetUser(c echo.Context) (err error) {
 	id := c.Param("id")
 
-	u := structs.User{
-		ID:      id,
-		Name:    "Heru Santoso",
-		Address: "Jakarta",
+	var u structs.User
+	errs := idb.DB.First(&u, id).Error
+	if errs != nil {
+		return c.JSON(http.StatusNotFound, handler.ErrorResponse(http.StatusNotFound, "Data not found", nil))
 	}
 
 	return c.JSON(http.StatusOK, handler.SuccessResponse(u))
 }
 
-func GetAllUser(c echo.Context) (err error) {
-	users := []structs.User{
-		{
-			ID:      "1",
-			Name:    "Heru",
-			Address: "Jakarta",
-		},
-		{
-			ID:      "2",
-			Name:    "Heru Santoso",
-			Address: "Jakarta",
-		},
-		{
-			ID:      "3",
-			Name:    "Santoso Heru",
-			Address: "Jakarta",
-		},
-	}
+func (idb *InDB) GetAllUser(c echo.Context) (err error) {
+	var users []structs.User
+
+	idb.DB.Find(&users)
 
 	return c.JSON(http.StatusOK, handler.SuccessResponse(users))
+}
+
+func (idb *InDB) DeleteUser(c echo.Context) (err error) {
+	id := c.Param("id")
+
+	// Check user on database
+	var u structs.User
+	errs := idb.DB.First(&u, id).Error
+	if errs != nil {
+		return c.JSON(http.StatusNotFound, handler.ErrorResponse(http.StatusNotFound, "Data not found", nil))
+	}
+
+	idb.DB.Delete(&u)
+	return c.JSON(http.StatusOK, handler.SuccessResponse("Data has been deleted"))
 }
