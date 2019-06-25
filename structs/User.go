@@ -1,7 +1,11 @@
 package structs
 
+import (
+	"github.com/jinzhu/gorm"
+)
+
 type User struct {
-	ID      string `json:"id"`
+	gorm.Model
 	Name    string `json:"name" validate:"required"`
 	Address string `json:"address" validate:"required"`
 }

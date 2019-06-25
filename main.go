@@ -1,6 +1,7 @@
 package main
 
 import (
+	"simple-rest-api-using-gorm-and-echo/config"
 	"simple-rest-api-using-gorm-and-echo/handler"
 	"simple-rest-api-using-gorm-and-echo/services"
 
@@ -9,15 +10,18 @@ import (
 )
 
 func main() {
+	db := config.DBInit()
+	inDB := &services.InDB{DB: db}
 	e := echo.New()
 	e.Validator = &CustomValidator{
 		validator: validator.New(),
 	}
 
-	e.POST("/user", services.CreateUser)
-	e.PUT("/user", services.UpdateUser)
-	e.GET("/user", services.GetAllUser)
-	e.GET("/user/:id", services.GetUser)
+	e.POST("/user", inDB.CreateUser)
+	e.PUT("/user/:id", inDB.UpdateUser)
+	e.GET("/user", inDB.GetAllUser)
+	e.GET("/user/:id", inDB.GetUser)
+	e.DELETE("/user/:id", inDB.DeleteUser)
 	e.HTTPErrorHandler = handler.ErrorHandler
 	e.Logger.Fatal(e.Start(":50000"))
 }
