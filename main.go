@@ -18,7 +18,7 @@ func main() {
 	}
 
 	e.POST("/user", inDB.CreateUser)
-	e.PUT("/user/:id", inDB.UpdateUser)
+	e.PUT("/user", inDB.UpdateUser)
 	e.GET("/user", inDB.GetAllUser)
 	e.GET("/user/:id", inDB.GetUser)
 	e.DELETE("/user/:id", inDB.DeleteUser)
